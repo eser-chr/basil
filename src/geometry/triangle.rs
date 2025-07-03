@@ -1,3 +1,4 @@
+use super::surface::Surface;
 use super::vec3d::Vec3d as Point;
 use num_traits::{Float, FromPrimitive};
 
@@ -28,10 +29,16 @@ where
         ((*self.p1) + (*self.p2) + (*self.p3)).div(three).unwrap()
     }
 
-    // fn surface(&self)->Surface<T>{
-    // if self.area()==T::zero(){
-    //     return Err("Collinearity or single point")
-    // }
+    pub fn surface(&self) -> Result<Surface<T>, &str> {
+        if self.area() == T::zero() {
+            Err("Collinearity or single point")
+        } else {
+            let ab = *self.p2 - *self.p1;
+            let ac = *self.p3 - *self.p1;
+            let n = ab.cross(&ac);
+            Ok(Surface { n })
+        }
+    }
 }
 
 #[cfg(test)]
@@ -57,6 +64,17 @@ mod tests {
         assert_eq!(
             Triangle::new(&p1, &p2, &p3).barycentre(),
             Point::new(1.0 / 3.0, 1.0 / 3.0, 0.0)
+        );
+    }
+    #[test]
+    fn surface() {
+        let p1 = Point::new(0.0, 0.0, 0.0);
+        let p2 = Point::new(1.0, 0.0, 0.0);
+        let p3 = Point::new(0.0, 1.0, 0.0);
+
+        assert_eq!(
+            Triangle::new(&p1, &p2, &p3).surface().unwrap().n,
+            Point::new(0.0,0.0,1.0)
         );
     }
 }
